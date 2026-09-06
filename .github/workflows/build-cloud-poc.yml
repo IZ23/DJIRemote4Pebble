@@ -56,7 +56,7 @@ jobs:
       - name: Build firmware slot 0
         working-directory: pebbleos
         env:
-          BOARD: ${{ inputs.board }}
+          BOARD: ${{ inputs.board || 'obelix@pvt' }}
         run: |
           rm -rf build
           pbl configure --board "$BOARD" -DCONFIG_FIRMWARE_SLOT=0
@@ -72,7 +72,7 @@ jobs:
       - name: Build firmware slot 1
         working-directory: pebbleos
         env:
-          BOARD: ${{ inputs.board }}
+          BOARD: ${{ inputs.board || 'obelix@pvt' }}
         run: |
           rm -rf build
           pbl configure --board "$BOARD" -DCONFIG_FIRMWARE_SLOT=1
