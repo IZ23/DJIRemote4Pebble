@@ -30,6 +30,18 @@ static bool uuid_eq(Uuid a, Uuid b) {
   return uuid_equal(&a, &b);
 }
 
+static Uuid characteristic_uuid(BLECharacteristic characteristic) {
+  Uuid uuid;
+  ble_characteristic_get_uuid(&uuid, characteristic);
+  return uuid;
+}
+
+static Uuid service_uuid(BLEService service) {
+  Uuid uuid;
+  ble_service_get_uuid(&uuid, service);
+  return uuid;
+}
+
 static bool is_dji_advertisement(const BLEAdData *ad) {
   uint8_t data[32] = {0};
   uint16_t company_id = 0;
@@ -88,7 +100,7 @@ static void read_handler(BLECharacteristic characteristic,
   (void)value_offset;
   if (error != BLEGATTErrorSuccess || !s_rx_cb) return;
   if (s_have_fff4 &&
-      uuid_eq(ble_characteristic_get_uuid(characteristic), s_uuid_fff4)) {
+      uuid_eq(characteristic_uuid(characteristic), s_uuid_fff4)) {
     s_rx_cb(value, value_length);
   }
 }
@@ -112,13 +124,13 @@ static void services_handler(BTDevice device,
   }
 
   for (uint8_t s = 0; s < num_services; ++s) {
-    if (!uuid_eq(ble_service_get_uuid(services[s]), s_uuid_fff0)) continue;
+    if (!uuid_eq(service_uuid(services[s]), s_uuid_fff0)) continue;
     BLECharacteristic chars[16];
     uint8_t count = ble_service_get_characteristics(services[s], chars, 16);
     if (count > 16) count = 16;
 
     for (uint8_t i = 0; i < count; ++i) {
-      Uuid u = ble_characteristic_get_uuid(chars[i]);
+      Uuid u = characteristic_uuid(chars[i]);
       if (uuid_eq(u, s_uuid_fff4)) {
         s_notify_fff4 = chars[i];
         s_have_fff4 = true;
