@@ -30,6 +30,11 @@ jobs:
       - name: Checkout DJIRemote4Pebble
         uses: actions/checkout@v4
 
+      - name: Protocol preflight
+        run: |
+          gcc -std=c11 -Wall -Wextra -Iinclude tests/test_protocol.c src/c/dji_protocol.c -o /tmp/test_protocol
+          /tmp/test_protocol
+
       - name: Checkout PebbleOS
         uses: actions/checkout@v4
         with:
