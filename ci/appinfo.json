@@ -1,1 +1,15 @@
-PLACEHOLDER
+{
+  "uuid": "c82c4399-df88-4340-b7a2-bbeea2b1f1be",
+  "shortName": "DJI Remote",
+  "longName": "DJIRemote4Pebble",
+  "companyName": "DJIRemote4Pebble PoC",
+  "versionCode": 4,
+  "versionLabel": "0.4",
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {},
+  "resources": {
+    "media": []
+  }
+}
