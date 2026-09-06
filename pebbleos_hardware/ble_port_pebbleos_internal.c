@@ -4,19 +4,6 @@
  */
 #include <pebble.h>
 
-/*
- * These BLE APIs are deliberately internal in PebbleOS.  The matching
- * firmware/SDK build exports their function-table entries, while the source
- * headers below provide the declarations and opaque BLE types to this PoC.
- */
-#include "fw/applib/bluetooth/ble_ad_parse.h"
-#include "fw/applib/bluetooth/ble_central.h"
-#include "fw/applib/bluetooth/ble_characteristic.h"
-#include "fw/applib/bluetooth/ble_client.h"
-#include "fw/applib/bluetooth/ble_scan.h"
-#include "fw/applib/bluetooth/ble_service.h"
-#include "pbl/btutil/bt_uuid.h"
-
 #include "ble_port.h"
 
 static BlePortState s_state = BLE_PORT_IDLE;
