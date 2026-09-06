@@ -1,18 +1,18 @@
 {
+  "name": "dji-remote-4-pebble",
   "author": "DJIRemote4Pebble PoC",
+  "version": "0.4.0",
+  "keywords": ["pebble-app", "dji", "osmo-action-4", "ble"],
+  "private": true,
   "dependencies": {},
-  "keywords": ["pebble-app"],
-  "name": "djiremote4pebble",
   "pebble": {
     "displayName": "DJI Remote",
-    "enableMultiJS": false,
-    "messageKeys": {},
-    "projectType": "native",
-    "resources": {"media": []},
+    "uuid": "c82c4399-df88-4340-b7a2-bbeea2b1f1be",
     "sdkVersion": "3",
+    "enableMultiJS": false,
     "targetPlatforms": ["emery"],
-    "uuid": "c50a7e44-5cb4-48f5-9a52-530d312c4b16",
-    "watchapp": {"watchface": false}
-  },
-  "version": "0.4.0"
+    "watchapp": {"watchface": false},
+    "messageKeys": [],
+    "resources": {"media": []}
+  }
 }
