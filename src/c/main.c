@@ -50,7 +50,7 @@ static void select_click(ClickRecognizerRef r,void *c){(void)r;(void)c;if(!dji_s
 static void down_click(ClickRecognizerRef r,void *c){(void)r;(void)c;text_layer_set_text(s_status,"ZOOM: WAIT DJI");}
 static void click_config(void *ctx){(void)ctx;window_single_click_subscribe(BUTTON_ID_UP,up_click);window_single_click_subscribe(BUTTON_ID_SELECT,select_click);window_single_click_subscribe(BUTTON_ID_DOWN,down_click);}
 static void window_load(Window *window){
-  Layer *root=window_get_root_layer(); GRect b=layer_get_bounds(root);
+  Layer *root=window_get_root_layer(window); GRect b=layer_get_bounds(root);
   s_title=text_layer_create(GRect(8,8,b.size.w-16,32)); text_layer_set_font(s_title,fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text_alignment(s_title,GTextAlignmentCenter); text_layer_set_text(s_title,"DJI REMOTE"); layer_add_child(root,text_layer_get_layer(s_title));
   s_status=text_layer_create(GRect(8,48,b.size.w-16,36)); text_layer_set_font(s_status,fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
