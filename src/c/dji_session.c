@@ -1,7 +1,6 @@
 #include "dji_session.h"
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 
 static dji_session_send_fn s_send;
 static DjiSessionState s_state = DJI_SESSION_IDLE;
@@ -30,7 +29,10 @@ bool dji_session_start_first_pairing(const uint8_t local_mac[6],
   if (!local_mac || max_single_write_len < DJI_CONNECTION_REQUEST_FRAME_LEN) {
     s_state = DJI_SESSION_ERROR; return false;
   }
-  srand((unsigned int)time(NULL));
+  time_t seconds = 0;
+  uint16_t milliseconds = 0;
+  time_ms(&seconds, &milliseconds);
+  srand((unsigned int)seconds ^ (unsigned int)milliseconds);
   s_verify_code = (uint16_t)(rand() % 10000u);
   uint8_t frame[64];
   size_t n = dji_build_connection_request(
