@@ -1,1 +1,114 @@
-PLACEHOLDER
+name: Build DJIRemote4Pebble Cloud PoC
+
+on:
+  workflow_dispatch:
+    inputs:
+      board:
+        description: Pebble Time 2 hardware board
+        required: true
+        default: obelix@pvt
+        type: choice
+        options:
+          - obelix@pvt
+          - obelix@dvt
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/coredevices/pebbleos-docker:v7
+
+    steps:
+      - name: Mark workspace safe
+        run: git config --system --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Checkout DJIRemote4Pebble
+        uses: actions/checkout@v4
+
+      - name: Checkout PebbleOS
+        uses: actions/checkout@v4
+        with:
+          repository: coredevices/PebbleOS
+          path: pebbleos
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install PebbleOS Python dependencies
+        working-directory: pebbleos
+        run: |
+          pip install -U pip
+          pip install -r requirements.txt
+
+      - name: Prepare internal BLE SDK build
+        run: |
+          python3 ci/prepare_pebbleos.py pebbleos
+
+      - name: Build firmware slot 0
+        working-directory: pebbleos
+        env:
+          BOARD: ${{ inputs.board }}
+        run: |
+          rm -rf build
+          pbl configure --board "$BOARD" -DCONFIG_FIRMWARE_SLOT=0
+          pbl build
+          pbl bundle
+          mkdir -p ../out/slot0
+          cp build/normal_*.pbz ../out/slot0/
+          cp build/pebbleos.bin ../out/slot0/
+          cp build/pebbleos.elf ../out/slot0/
+          cp -R build/sdk ../out/slot0/sdk
+
+      - name: Build firmware slot 1
+        working-directory: pebbleos
+        env:
+          BOARD: ${{ inputs.board }}
+        run: |
+          rm -rf build
+          pbl configure --board "$BOARD" -DCONFIG_FIRMWARE_SLOT=1
+          pbl build
+          pbl bundle
+          mkdir -p ../out/slot1
+          cp build/normal_*.pbz ../out/slot1/
+          cp build/pebbleos.bin ../out/slot1/
+          cp build/pebbleos.elf ../out/slot1/
+
+      - name: Merge dual-slot firmware bundle
+        working-directory: pebbleos
+        run: |
+          mkdir -p ../out/merged
+          PBZ0=$(ls ../out/slot0/normal_*_slot0.pbz)
+          PBZ1=$(ls ../out/slot1/normal_*_slot1.pbz)
+          python3 tools/merge_pbz.py \
+            --slot0-pbz "$PBZ0" \
+            --slot1-pbz "$PBZ1" \
+            --output ../out/merged/DJIRemote4Pebble_test_firmware.pbz
+
+      - name: Prepare DJIRemote app for internal SDK
+        run: |
+          rm -f src/c/ble_port_mock.c
+          cp pebbleos_hardware/ble_port_pebbleos_internal.c src/c/ble_port_pebbleos_internal.c
+          cp ci/wscript .
+          cp ci/appinfo.json appinfo.json
+
+      - name: Build DJIRemote app against generated internal SDK
+        run: |
+          python3 ci/build_app_with_generated_sdk.py \
+            --sdk-root out/slot0/sdk \
+            --project-root .
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p artifacts
+          cp out/merged/DJIRemote4Pebble_test_firmware.pbz artifacts/
+          find build -name '*.pbw' -exec cp {} artifacts/DJIRemote4Pebble_0.4_internal.pbw \;
+          cp README.md artifacts/
+          cp docs/PHONE_ONLY_CLOUD_CI.md artifacts/
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: DJIRemote4Pebble-CloudPoC
+          path: artifacts
