@@ -1,6 +1,8 @@
 name: Build DJIRemote4Pebble Cloud PoC
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       board:
@@ -54,6 +56,7 @@ jobs:
           rm -rf build
           pbl configure --board "$BOARD" -DCONFIG_FIRMWARE_SLOT=0
           pbl build
+          pbl build sdk
           pbl bundle
           mkdir -p ../out/slot0
           cp build/normal_*.pbz ../out/slot0/
