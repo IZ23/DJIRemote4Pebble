@@ -9,8 +9,15 @@ def configure(ctx):
 
 def build(ctx):
     ctx.load('pebble_sdk')
-    ctx.pbl_program(source=ctx.path.ant_glob('src/**/*.c'),
-                    target='pebble-app.elf',
-                    includes=['include'])
+    # pbl_program currently adds the legacy memory_usage feature. The
+    # generated Emery SDK exposes PLATFORM as a list, while that optional
+    # reporter still expects a dict. Build the identical Pebble C program
+    # without the reporting-only feature.
+    ctx(features='c cprogram pebble_cprogram',
+        source=ctx.path.ant_glob('src/**/*.c'),
+        target='pebble-app.elf',
+        includes=['include'],
+        bin_type='app',
+        app='pebble-app.elf')
     ctx.pbl_bundle(elf='pebble-app.elf',
                    js=ctx.path.ant_glob('src/js/**/*.js'))
