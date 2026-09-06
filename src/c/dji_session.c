@@ -29,11 +29,14 @@ bool dji_session_start_first_pairing(const uint8_t local_mac[6],
   if (!local_mac || max_single_write_len < DJI_CONNECTION_REQUEST_FRAME_LEN) {
     s_state = DJI_SESSION_ERROR; return false;
   }
-  time_t seconds = 0;
-  uint16_t milliseconds = 0;
-  time_ms(&seconds, &milliseconds);
-  srand((unsigned int)seconds ^ (unsigned int)milliseconds);
-  s_verify_code = (uint16_t)(rand() % 10000u);
+  /*
+   * The DJI verification code only needs to match what the user confirms
+   * on the camera; it does not require a cryptographic RNG. Keep the PoC
+   * independent of non-exported Pebble time functions.
+   */
+  static uint16_t pairing_nonce = 1729u;
+  pairing_nonce = (uint16_t)((pairing_nonce + 2713u) % 10000u);
+  s_verify_code = pairing_nonce;
   uint8_t frame[64];
   size_t n = dji_build_connection_request(
       s_seq++, DJI_POC_CONTROLLER_ID, local_mac, 1, s_verify_code,
