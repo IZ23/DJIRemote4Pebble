@@ -1,0 +1,18 @@
+{
+  "author": "DJIRemote4Pebble PoC",
+  "dependencies": {},
+  "keywords": ["pebble-app"],
+  "name": "djiremote4pebble",
+  "pebble": {
+    "displayName": "DJI Remote",
+    "enableMultiJS": false,
+    "messageKeys": {},
+    "projectType": "native",
+    "resources": {"media": []},
+    "sdkVersion": "3",
+    "targetPlatforms": ["emery"],
+    "uuid": "c50a7e44-5cb4-48f5-9a52-530d312c4b16",
+    "watchapp": {"watchface": false}
+  },
+  "version": "0.4.0"
+}
