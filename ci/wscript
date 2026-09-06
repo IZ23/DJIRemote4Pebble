@@ -27,11 +27,7 @@ def build(ctx):
             features='c cprogram pebble_cprogram',
             source=ctx.path.ant_glob('src/c/**/*.c'),
             target=app_elf,
-            includes=[
-                'include',
-                'pebbleos/src',
-                'pebbleos/include'
-            ],
+            includes=['include'],
             bin_type='app',
             app=app_elf
         )
