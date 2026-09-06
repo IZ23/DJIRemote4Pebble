@@ -1,12 +1,22 @@
 /*
  * DJIRemote4Pebble PoC 0.4
  * BLE Central/GATT backend for a PebbleOS internal SDK build.
- *
- * Important: this file intentionally includes only pebble.h. The Cloud CI
- * generates an internal SDK from the exact same PebbleOS source as the test
- * firmware, so internal BLE symbols are emitted into that SDK surface.
  */
 #include <pebble.h>
+
+/*
+ * These BLE APIs are deliberately internal in PebbleOS.  The matching
+ * firmware/SDK build exports their function-table entries, while the source
+ * headers below provide the declarations and opaque BLE types to this PoC.
+ */
+#include "fw/applib/bluetooth/ble_ad_parse.h"
+#include "fw/applib/bluetooth/ble_central.h"
+#include "fw/applib/bluetooth/ble_characteristic.h"
+#include "fw/applib/bluetooth/ble_client.h"
+#include "fw/applib/bluetooth/ble_scan.h"
+#include "fw/applib/bluetooth/ble_service.h"
+#include "pbl/btutil/bt_uuid.h"
+
 #include "ble_port.h"
 
 static BlePortState s_state = BLE_PORT_IDLE;
@@ -28,7 +38,10 @@ static void set_state(BlePortState state) {
   s_state = state;
   if (s_state_cb) s_state_cb(state);
 }
-static bool uuid_eq(Uuid a, Uuid b) { return uuid_equal(&a, &b); }
+
+static bool uuid_eq(Uuid a, Uuid b) {
+  return uuid_equal(&a, &b);
+}
 
 static bool is_dji_advertisement(const BLEAdData *ad) {
   uint8_t data[32] = {0};
@@ -63,8 +76,9 @@ static void connection_handler(BTDevice device, BTErrno status) {
 
   set_state(BLE_PORT_CONNECTED);
   ble_client_set_service_filter(&s_uuid_fff0, 1);
-  if (ble_client_discover_services_and_characteristics(s_device) != BTErrnoOK)
+  if (ble_client_discover_services_and_characteristics(s_device) != BTErrnoOK) {
     set_state(BLE_PORT_ERROR);
+  }
 }
 
 static void subscribe_handler(BLECharacteristic characteristic,
@@ -72,8 +86,7 @@ static void subscribe_handler(BLECharacteristic characteristic,
                               BLEGATTError error) {
   (void)characteristic;
   if (error == BLEGATTErrorSuccess &&
-      subscription_type != BLESubscriptionNone &&
-      s_have_fff5) {
+      subscription_type != BLESubscriptionNone && s_have_fff5) {
     set_state(BLE_PORT_READY);
   } else {
     set_state(BLE_PORT_ERROR);
@@ -99,7 +112,10 @@ static void services_handler(BTDevice device,
                              uint8_t num_services,
                              BTErrno status) {
   (void)device;
-  if (status != BTErrnoOK) { set_state(BLE_PORT_ERROR); return; }
+  if (status != BTErrnoOK) {
+    set_state(BLE_PORT_ERROR);
+    return;
+  }
 
   if (update_type == BLEClientServicesRemoved ||
       update_type == BLEClientServicesInvalidateAll) {
@@ -117,16 +133,22 @@ static void services_handler(BTDevice device,
     for (uint8_t i = 0; i < count; ++i) {
       Uuid u = ble_characteristic_get_uuid(chars[i]);
       if (uuid_eq(u, s_uuid_fff4)) {
-        s_notify_fff4 = chars[i]; s_have_fff4 = true;
+        s_notify_fff4 = chars[i];
+        s_have_fff4 = true;
       } else if (uuid_eq(u, s_uuid_fff5)) {
-        s_write_fff5 = chars[i]; s_have_fff5 = true;
+        s_write_fff5 = chars[i];
+        s_have_fff5 = true;
       }
     }
   }
 
-  if (!s_have_fff4 || !s_have_fff5) { set_state(BLE_PORT_ERROR); return; }
-  if (ble_client_subscribe(s_notify_fff4, BLESubscriptionNotifications) != BTErrnoOK)
+  if (!s_have_fff4 || !s_have_fff5) {
     set_state(BLE_PORT_ERROR);
+    return;
+  }
+  if (ble_client_subscribe(s_notify_fff4, BLESubscriptionNotifications) != BTErrnoOK) {
+    set_state(BLE_PORT_ERROR);
+  }
 }
 
 void ble_port_init(ble_state_cb_t state_cb, ble_rx_cb_t rx_cb) {
@@ -165,17 +187,12 @@ bool ble_port_write_fff5(const uint8_t *data, size_t len) {
   return ble_client_write(s_write_fff5, data, len) == BTErrnoOK;
 }
 
-BlePortState ble_port_state(void) { return s_state; }
+BlePortState ble_port_state(void) {
+  return s_state;
+}
 
 bool ble_port_get_local_identity_mac(uint8_t mac_out[6]) {
   if (!mac_out) return false;
-  /*
-   * Stable locally-administered PoC controller identifier. DJI's R-SDK 0019
-   * carries a controller MAC field, but the app does not require direct
-   * access to PebbleOS' private Bluetooth driver identity merely to test the
-   * protocol. If DJI proves to validate this against the on-air address, we
-   * will add a dedicated firmware wrapper in the next PoC.
-   */
   const uint8_t id[6] = {0x02, 0x12, 0x34, 0x56, 0x78, 0x9A};
   for (int i = 0; i < 6; ++i) mac_out[i] = id[i];
   return true;
