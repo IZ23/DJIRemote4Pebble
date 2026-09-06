@@ -48,7 +48,13 @@ size_t dji_build_record_control(uint16_t seq,bool start,uint8_t *out,size_t out_
 size_t dji_build_connection_request(uint16_t seq,uint32_t controller_device_id,const uint8_t mac[6],
                                     uint8_t verify_mode,uint16_t verify_code,uint8_t *out,size_t out_cap){
   uint8_t payload[33]={0}; put_le32(payload,controller_device_id); payload[4]=6;
-  if(mac) memcpy(payload+5,mac,6); put_le32(payload+21,0); payload[25]=0; payload[26]=verify_mode; put_le16(payload+27,verify_code);
+  if (mac) {
+    memcpy(payload + 5, mac, 6);
+  }
+  put_le32(payload + 21, 0);
+  payload[25] = 0;
+  payload[26] = verify_mode;
+  put_le16(payload + 27, verify_code);
   return dji_build_frame(0x01,seq,0x00,0x19,payload,sizeof(payload),out,out_cap);
 }
 size_t dji_build_connection_response(uint16_t seq,uint32_t controller_device_id,uint32_t camera_number,uint8_t *out,size_t out_cap){
