@@ -25,6 +25,8 @@ if waf is None:
 
 env = os.environ.copy()
 env["PEBBLE_SDK_ROOT"] = str(sdk)
+toolchain_bin = "/opt/pebbleos-sdk/arm-none-eabi/bin"
+env["PATH"] = toolchain_bin + os.pathsep + env.get("PATH", "")
 
 subprocess.run([sys.executable, str(waf), "configure"], cwd=project, env=env, check=True)
 subprocess.run([sys.executable, str(waf), "build"], cwd=project, env=env, check=True)
